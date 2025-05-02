@@ -59,7 +59,7 @@ function addLine() {
 function adjustOptionalFields(selectEl) {
   const parent = selectEl.closest('.taf-line');
   const isTempo = selectEl.value === 'TEMPO';
-  const fields = ['wind', 'vis', 'clouds', 'altimeter'];
+  const fields = ['wind', 'vis' ,'wx','clouds', 'altimeter'];
   const labelMap = {
     wind: 'wind-label',
     vis: 'vis-label',
