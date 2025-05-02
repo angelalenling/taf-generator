@@ -6,7 +6,15 @@ app = Flask(__name__)
 
 @app.route('/')
 def home():
-    return render_template('index.html')
+    try:
+        with open("visits.txt", "r") as f:
+            count = int(f.read().strip())
+    except:
+        count = 0
+    count += 1
+    with open("visits.txt", "w") as f:
+        f.write(str(count))
+    return render_template('index.html', visit_count=count)
 
 @app.route('/generate', methods=['POST'])
 def generate():
