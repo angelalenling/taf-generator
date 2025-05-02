@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>TAF Builder</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <style>
+    .optional { opacity: 0.6; }
+    .taf-line { border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+  <h1>Build a TAF Forecast</h1>
+  <form action="/generate" method="post">
+    <label>Amendment?</label>
+    <select name="amd">
+      <option value="">None</option>
+      <option value="AMD">AMD</option>
+    </select>
+    <label>Station Identifier:</label>
+    <input type="text" name="station" placeholder="KMSP" required><br><br>
+
+    <div class="taf-line">
+      <h3>Initial TAF Line</h3>
+      <label>Issuance time (DDHHMMZ):</label>
+      <input type="text" name="timegroup" placeholder="051800" required>
+      <label>Start Hour (DDHH):</label>
+      <input type="text" name="start_hour" placeholder="0518" required>
+      <label>Wind:</label>
+      <input type="text" name="wind[]" placeholder="18012KT or 18015G25KT" required>
+      <label>Visibility:</label>
+      <input type="text" name="vis[]" placeholder="7SM" required>
+      <label>Weather:</label>
+      <input type="text" name="wx[]" placeholder="RA">
+      <label>Clouds:</label>
+      <input type="text" name="clouds[]" placeholder="BKN050" required>
+      <label class="alt-label">Altimeter:</label>
+      <input type="text" name="altimeter[]" placeholder="2986" required>
+      <label>Icing (optional):</label>
+      <select name="icing_type[]">
+        <option value="">None</option>
+        <option value="0">0 Trace</option>
+        <option value="1">1 LGT Mixed</option>
+        <option value="2">2 LGT Rime In Cloud</option>
+        <option value="3">3 LGT Clear In Precip</option>
+        <option value="4">4 MDT Mixed</option>
+        <option value="5">5 MDT Rime In Cloud</option>
+        <option value="6">6 MDT Clear In Precip</option>
+        <option value="7">7 SVR Mixed</option>
+        <option value="8">8 SVR Rime In Cloud</option>
+        <option value="9">9 SVR Clear In Precip</option>
+      </select>
+      <input type="text" name="icing[]" placeholder="Base&Depth(BBBD)">
+      <label>Turbulence (optional):</label>
+      <select name="turbulence_type[]">
+        <option value="">None</option>
+        <option value="0">0 None</option>
+        <option value="1">1 LGT TURB</option>
+        <option value="2">2 MDT TURB in clear, OCNL</option>
+        <option value="3">3 MDT TURB in clear, FREQ</option>
+        <option value="4">4 MDT TURB in cloud, OCNL</option>
+        <option value="5">5 MDT TURB in cloud, FREQ</option>
+        <option value="6">6 SVR TURB in clear, OCNL</option>
+        <option value="7">7 SVR TURB in clear, FREQ</option>
+        <option value="8">8 SVR TURB in cloud, OCNL</option>
+        <option value="9">9 SVR TURB in cloud, FREQ</option>
+        <option value="X">X Extreme TURB</option>
+      </select>
+      <input type="text" name="turbulence[]" placeholder="Base&Depth(BBBD)">
+    </div>
+
+    <div id="taf-lines"></div>
+    <button type="button" onclick="addLine()">+ Add Forecast Line</button>
+
+    <div class="taf-line">
+      <h3>Final Forecast Line</h3>
+      <label>Type:</label>
+      <select name="type[]">
+        <option value="BECMG">BECMG</option>
+        <option value="TEMPO">TEMPO</option>
+      </select>
+      <label>Period (DDHH/DDHH):</label>
+      <input type="text" name="period[]" placeholder="0604/0605" required>
+      <label class="wind-label">Wind:</label>
+      <input type="text" name="wind[]" placeholder="18012KT or 18015G25KT">
+      <label class="vis-label">Visibility:</label>
+      <input type="text" name="vis[]" placeholder="7SM">
+      <label class="wx-label">Weather:</label>
+      <input type="text" name="wx[]" placeholder="RA">
+      <label class="clouds-label">Clouds:</label>
+      <input type="text" name="clouds[]" placeholder="BKN050">
+      <label class="alt-label">Altimeter:</label>
+      <input type="text" name="altimeter[]" placeholder="2986">
+      <label>Icing (optional):</label>
+      <select name="icing_type[]">
+        <option value="">None</option>
+        <option value="0">0 Trace</option>
+        <option value="1">1 Light Mixed</option>
+        <option value="2">2 Light Rime In Cloud</option>
+        <option value="3">3 Light Clear In Precip</option>
+        <option value="4">4 MDT Mixed</option>
+        <option value="5">5 MDT Rime In Cloud</option>
+        <option value="6">6 MDT Clear In Precip</option>
+        <option value="7">7 SVR Mixed</option>
+        <option value="8">8 SVR Rime In Cloud</option>
+        <option value="9">9 SVR Clear In Precip</option>
+      </select>
+      <input type="text" name="icing[]" placeholder="Base&Depth(BBBD)">
+      <label>Turbulence (optional):</label>
+      <select name="turbulence_type[]">
+        <option value="">None</option>
+        <option value="0">0 None</option>
+        <option value="1">1 Light TURB</option>
+        <option value="2">2 MDT TURB in clear, OCNL</option>
+        <option value="3">3 MDT TURB in clear, FREQ</option>
+        <option value="4">4 MDT TURB in cloud, OCNL</option>
+        <option value="5">5 MDT TURB in cloud, FREQ</option>
+        <option value="6">6 SVR TURB in clear, OCNL</option>
+        <option value="7">7 SVR TURB in clear, FREQ</option>
+        <option value="8">8 SVR TURB in cloud, OCNL</option>
+        <option value="9">9 SVR TURB in cloud, FREQ</option>
+        <option value="X">X Extreme TURB</option>
+      </select>
+      <input type="text" name="turbulence[]" placeholder="Base&Depth(BBBD)">
+      <label>Max Temp (TT/DDHHZ):</label>
+      <input type="text" name="maxtemp" placeholder="27/0522Z">
+      <label>Min Temp (TT/DDHHZ):</label>
+      <input type="text" name="mintemp" placeholder="08/0612Z">
+    </div>
+
+    <br><br>
+    <button type="submit">Generate TAF</button>
+  </form>
+
+  <script src="/static/script.js"></script>
+</body>
+</html>
